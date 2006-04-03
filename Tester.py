@@ -17,7 +17,7 @@ def eq_ok(got, expected, comment):
   if not okness:
     diag("expected: %s" % expected)
     diag("     got: %s" % got)
-
+  return okness
 
 def is_ok(got, expected, comment):
   okness = got is expected
@@ -25,10 +25,12 @@ def is_ok(got, expected, comment):
   if not okness:
     diag("expected id: %s" % id(expected))
     diag("     got id: %s" % id(got))
+  return okness
 
 def isa_ok(object, cls, object_name="the object"):
   okness = isinstance(object, cls)
   ok(okness, comment)
-  if not okness:
-    diag("expected id: %s" % id(expected))
-    diag("     got id: %s" % id(got))
+  # if not okness:
+  #   diag("expected id: %s" % id(expected))
+  #   diag("     got id: %s" % id(got))
+  return okness
