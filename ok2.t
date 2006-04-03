@@ -15,8 +15,8 @@ ok(True,      "the Truth will set you ok")
 ok(not False, "and nothing but the truth")
 ok(False,     "and we'll know if you lie to us")
 
-ok(isinstance(10,int),   "10 is an integer")
-ok(isinstance("ok",str), "and this is an extra test")
+isa_ok(10, int, "10")
+isa_ok('ok', str, "some string")
 
 ok(0,    "zero is true", todo="be more like Ruby!")
 ok(None, "none is true", skip="not possible in this universe")

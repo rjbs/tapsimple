@@ -29,7 +29,7 @@ def is_ok(got, expected, comment):
 
 def isa_ok(object, cls, object_name="the object"):
   okness = isinstance(object, cls)
-  ok(okness, comment)
+  ok(okness, object_name + " is a " + repr(cls))
   # if not okness:
   #   diag("expected id: %s" % id(expected))
   #   diag("     got id: %s" % id(got))

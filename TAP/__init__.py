@@ -12,7 +12,7 @@ class Plan(object):
     if isinstance(plan, int):
       self.expected_tests = plan
       print "1..%u" % self.expected_tests
-    elif plan == "no_plan": 1
+    elif plan == "no_plan" or plan == None: 1
     elif plan == "skip_all":
       print "1..0 # skip %s" % param
       raise SystemExit(0) # ??? this is what T::B does, but sucks
