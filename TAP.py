@@ -28,7 +28,8 @@ class Plan(object):
     if self.expected_tests is None:
       print "1..%u" % self.counter
     elif self.counter != self.expected_tests:
-      print "# Looks like you planned %u tests but ran %u." % (self.expected_tests, self.counter)
+      print "# Looks like you planned %u tests but ran %u." \
+        % (self.expected_tests, self.counter)
 
 class Builder(object):
   global_defaults = {
