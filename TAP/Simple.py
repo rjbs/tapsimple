@@ -1,5 +1,6 @@
 
 import TAP
+import re
 
 builder = TAP.Builder()
 
@@ -9,7 +10,7 @@ def plan(plan, plan_param=None):
 ok = builder.ok
 
 def diag(comment):
-  print "# %s" % comment
+  print "# %s" % re.compile("\n(.)").sub(comment, '\n#\1')
 
 def eq_ok(got, expected, comment):
   okness = got == expected
