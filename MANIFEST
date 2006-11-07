@@ -3,3 +3,4 @@ TAP/Simple.py
 TAP/__init__.py
 examples/ok.t
 examples/ok2.t
+t/perl-critic.t
