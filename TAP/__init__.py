@@ -43,7 +43,7 @@ class Builder(object):
     self.__dict__ = self.global_test_builder
     if plan: self.set_plan(plan, plan_param)
 
-  @classmethod
+  @classmethod # XXX: why did this fail?
   def create(cls, plan=None, plan_param=None):
     # self = new.instance(cls) # ? this sucks, too
     self = Builder()
