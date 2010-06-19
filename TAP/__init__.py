@@ -60,6 +60,9 @@ class Builder(object):
  
   def ok(self, is_ok, desc=None, skip=None, todo=None):
     self.get_plan().increment_counter()
+
+    if skip and todo: raise TestBadDirective(self)
+
     if is_ok: report = "ok" 
     else:     report = "not ok"
 
@@ -96,3 +99,7 @@ class TestBadPlan(Exception):
     self.plan = plan
   def __str__(self):
     return "didn't understand plan '%s'" % self.plan
+
+class TestBadDirective(Exception):
+  def __str__(self):
+    return "tried running a test with more than one directive"
