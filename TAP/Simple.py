@@ -10,7 +10,7 @@ def plan(plan, plan_param=None):
 ok = builder.ok
 
 def diag(comment):
-  print "# %s" % re.compile("\n(.)").sub(comment, '\n#\1')
+  print("# %s" % re.compile("\n(.)").sub(comment, '\n#\1'))
 
 def eq_ok(have, want, comment):
   okness = have == want
