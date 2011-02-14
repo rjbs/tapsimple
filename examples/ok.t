@@ -1,7 +1,8 @@
-
+#!/usr/bin/env python
 # TEST SOME STUFF
 import TAP
 
+# plan 15 tests, only make 13
 ok = TAP.Builder.create(15).ok
 
 ok(1)

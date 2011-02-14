@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 # TEST SOME STUFF
 from TAP.Simple import *
 
