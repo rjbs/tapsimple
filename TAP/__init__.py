@@ -72,7 +72,7 @@ class Builder(object):
     if skip: sys.stdout.write(" # SKIP %s" % skip)
     if todo: sys.stdout.write(" # TODO %s" % todo)
 
-    print
+    print("")
 
     self.current += 1
 
