@@ -11,10 +11,10 @@ class Plan(object):
 
     if isinstance(plan, int):
       self.expected_tests = plan
-      print "1..%u" % self.expected_tests
+      print("1..%u" % self.expected_tests)
     elif plan == "no_plan" or plan == None: 1
     elif plan == "skip_all":
-      print "1..0 # skip %s" % param
+      print("1..0 # skip %s" % param)
       raise SystemExit(0) # ??? this is what T::B does, but sucks
     else:
       raise TestBadPlan(plan)
@@ -26,10 +26,10 @@ class Plan(object):
     if self.ended: return
     self.ended = True
     if self.expected_tests is None:
-      print "1..%u" % self.counter
+      print("1..%u" % self.counter)
     elif self.counter != self.expected_tests:
-      print "# Looks like you planned %u tests but ran %u." \
-        % (self.expected_tests, self.counter)
+      print("# Looks like you planned %u tests but ran %u." \
+        % (self.expected_tests, self.counter))
 
 class Builder(object):
   global_defaults = {
