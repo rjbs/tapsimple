@@ -35,3 +35,11 @@ def isa_ok(object, cls, object_name="the object"):
   #   diag("want id: %s" % id(want))
   #   diag("have id: %s" % id(have))
   return okness
+
+def import_ok(importstring, comment=None):
+    try:
+        exec(importstring)
+        ok(1, comment)
+    except ImportError as error:
+        ok(0, comment)
+        diag("Unable to exec: " + importstring)
