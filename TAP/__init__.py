@@ -1,105 +1,142 @@
 import sys
 import atexit
 
-# todo: make written-to stream passable
+TAPOUT = sys.stdout
+
+def tap_print(message):
+    """
+    Description:
+        This prints to a safe duplication of stdout, which cannot be redirected
+        from inside the script.
+        It allows tests to redirect their debug output without also redirecting
+        the TAP stream.
+        This is useful for separating the test "debug" stream from the test
+        TAP stream.
+
+        TAP output can only be redirected from outside the script, e.g.:
+        $ ./test.py > tap_output.txt
+
+    Parameters:
+        message: string to be printed.
+
+    Return: None.
+    """
+    TAPOUT.write(message)
 
 class Plan(object):
-  def __init__(self, plan, param=None):
-    self.counter = 0
-    self.expected_tests = None
-    self.ended = False
+    """ The test case manager class."""
+    def __init__(self, plan):
+        self.counter = 0
+        self.failures = 0
+        self.expected_tests = None
+        self.ended = False
 
-    if isinstance(plan, int):
-      self.expected_tests = plan
-      print(("1..%u" % self.expected_tests))
-    elif plan == "no_plan" or plan == None: 1
-    elif plan == "skip_all":
-      print(("1..0 # skip %s" % param))
-      raise SystemExit(0) # ??? this is what T::B does, but sucks
-    else:
-      raise TestBadPlan(plan)
+        if isinstance(plan, int):
+            self.expected_tests = plan
+            tap_print("1..%u\n" % self.expected_tests)
+        elif plan == "no_plan" or plan == None:
+            pass
+        elif plan == "skip_all":
+            tap_print("1..0 # skip all\n")
+            raise SystemExit(0)
+        else:
+            raise TestBadPlan(plan)
 
-  def increment_counter(self):
-    self.counter += 1
+    def increment_counter(self):
+        self.counter += 1
 
-  def __del__(self):
-    if self.ended: return
-    self.ended = True
-    if self.expected_tests is None:
-      print(("1..%u" % self.counter))
-    elif self.counter != self.expected_tests:
-      print(("# Looks like you planned %u tests but ran %u." \
-        % (self.expected_tests, self.counter)))
+    def increment_failures(self):
+        self.failures += 1
+
+    def set_expected(self, expected_tests):
+        self.expected_tests = expected_tests
+
+    def __del__(self):
+        if self.ended:
+            return
+        if self.expected_tests is None:
+            tap_print("1..%u\n" % self.counter)
+        elif self.counter != self.expected_tests:
+            tap_print(("# Looks like you planned %u tests but ran %u.\n"
+                       % (self.expected_tests, self.counter)))
+
+        if self.failures > 0:
+            tap_print("# Failed %s out of %s\n" % (self.failures, self.counter))
+        else:
+            tap_print ("# All passed\n")
+
+        self.ended = True
+
 
 class Builder(object):
-  global_defaults = {
-    "_plan":    None,
-    "current":  1,
-    "has_plan": False,
-  }
-  global_test_builder = global_defaults.copy()
+    def __init__(self, plan=None):
+        self._plan = None
+        self.current = 1
+        if plan != None:
+            self.set_plan(plan)
 
-  def __init__(self, plan=None, plan_param=None):
-    self.__dict__ = self.global_test_builder
-    if plan: self.set_plan(plan, plan_param)
+    def set_plan(self, plan):
+        existing_plan = self.get_plan()
+        if existing_plan != None:
+            if existing_plan.expected_tests == None:
+                existing_plan.set_expected(plan)
+                return
+            else:
+                raise TestPlannedAlready(plan)
+        self._plan = Plan(plan)
+        atexit.register(self._plan.__del__)
 
-  @classmethod # XXX: why did this fail?
-  def create(cls, plan=None, plan_param=None):
-    # self = new.instance(cls) # ? this sucks, too
-    self = Builder()
-    self.__dict__  = self.global_defaults.copy()
-    if plan: self.set_plan(plan, plan_param)
-    return self
+    def get_plan(self):
+        return self._plan
 
-  def set_plan(self, plan, plan_param=None):
-    if self.get_plan(): raise TestPlannedAlready(plan, plan_param)
-    self._plan = Plan(plan, plan_param)
-    atexit.register(self._plan.__del__)
+    def ok(self, is_ok, desc=None, skip=None, todo=None):
+        plan = self.get_plan()
+        plan.increment_counter()
 
-  def get_plan(self): return self._plan
- 
-  def ok(self, is_ok, desc=None, skip=None, todo=None):
-    self.get_plan().increment_counter()
+        if skip and todo:
+            raise TestBadDirective(self)
 
-    if skip and todo: raise TestBadDirective(self)
+        if is_ok:
+            report = "ok"
+        else:
+            if todo == None:
+                self._plan.increment_failures()
+            report = "not ok"
 
-    if is_ok: report = "ok" 
-    else:     report = "not ok"
+        tap_print("%s %u" % (report, plan.counter))
 
-    sys.stdout.write("%s %u" % (report, self.current))
+        if desc:
+            tap_print(" - %s" % desc)
+        if skip:
+            tap_print(" # SKIP %s" % skip)
+        if todo:
+            unexpected = ""
+            if is_ok:
+                unexpected = " - UNEXPECTED SUCCESS -"
+            tap_print(" # TODO%s %s" % (unexpected, todo))
 
-    if desc: sys.stdout.write(" - %s" % desc)
-    if skip: sys.stdout.write(" # SKIP %s" % skip)
-    if todo: sys.stdout.write(" # TODO %s" % todo)
+        tap_print("\n")
 
-    print("")
-
-    self.current += 1
-
-    return is_ok
-
-  def reset(self):
-    self.__dict__.clear()
-    for key in list(self.global_defaults.keys()):
-      self.__dict__[key] = self.global_defaults[key]
+        return is_ok
 
 class TestPlannedAlready(Exception):
-  def __init__(self, plan, param=None):
-    self.plan  = plan
-    self.param = param
-  def __str__(self):
-    return "tried to plan twice; second plan: %s, %s" % self.plan, self.param
+    def __init__(self, plan):
+        self.plan    = plan
+
+    def __str__(self):
+        return "tried to plan twice; second plan: %s" % self.plan
 
 class TestWithoutPlan(Exception):
-  def __str__(self):
-    return "tried running tests without a plan"
+    def __str__(self):
+        return "tried running tests without a plan"
 
 class TestBadPlan(Exception):
-  def __init__(self, plan):
-    self.plan = plan
-  def __str__(self):
-    return "didn't understand plan '%s'" % self.plan
+    def __init__(self, plan):
+        self.plan = plan
+
+    def __str__(self):
+        return "didn't understand plan '%s'" % self.plan
 
 class TestBadDirective(Exception):
-  def __str__(self):
-    return "tried running a test with more than one directive"
+    def __str__(self):
+        return "tried running a test with more than one directive"
