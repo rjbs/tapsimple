@@ -43,13 +43,9 @@ class Builder(object):
     self.__dict__ = self.global_test_builder
     if plan: self.set_plan(plan, plan_param)
 
-  @classmethod # XXX: why did this fail?
+  @classmethod
   def create(cls, plan=None, plan_param=None):
-    # self = new.instance(cls) # ? this sucks, too
-    self = Builder()
-    self.__dict__  = self.global_defaults.copy()
-    if plan: self.set_plan(plan, plan_param)
-    return self
+    return Builder(plan, plan_param)
 
   def set_plan(self, plan, plan_param=None):
     if self.get_plan(): raise TestPlannedAlready(plan, plan_param)
